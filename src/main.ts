@@ -29,7 +29,7 @@ async function bootstrap() {
   setupSwagger(app);
 
   // Configure CORS for handling requests from different origins
-  // setupCors(app);
+  setupCors(app);
 
   // Middleware for parsing cookies
   app.use(cookieParser(COOKIE_SECRET_KEY));

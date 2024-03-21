@@ -17,7 +17,12 @@ import { Request, Response } from 'express';
 
 // Local imports from the application
 import { AuthService } from './auth.service';
-import { SignInAuthDto, SignUpAuthDto, ResUserDto } from './dto';
+import {
+  SignInAuthDto,
+  SignUpAuthDto,
+  ResUserDto,
+  ShortResUserDto,
+} from './dto';
 import { AuthGuard } from './middlewares/auth.guard'; // Importing custom AuthGuard
 import { saveTokenCookies, clearTokenCookies } from '../helpers/cookiesHelper'; // Utility functions for cookie management
 
@@ -81,7 +86,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user info' }) // Swagger operation summary
   @ApiBearerAuth('access-token') // Signifies this route is protected by bearer token authentication
   @UseGuards(AuthGuard) // Apply custom AuthGuard to protect the route
-  async getUser(@User() user: ResUserDto) {
+  async getUser(@User() user: ShortResUserDto) {
     // Return relevant user information
     return { name: user.name, email: user.email, mobile: user.mobile };
   }

@@ -5,4 +5,10 @@ class ResUserDto {
   mobile: string;
 }
 
-export { ResUserDto };
+class ShortResUserDto {
+  name: string;
+  email: string;
+  mobile: string;
+}
+
+export { ResUserDto, ShortResUserDto };
