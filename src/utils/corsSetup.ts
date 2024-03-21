@@ -23,5 +23,7 @@ export function setupCors(app: INestApplication): void {
     preflightContinue: false,
     // Specifies which methods are allowed when accessing the resource
     methods: 'GET,POST,DELETE',
+    allowedHeaders:
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization',
   });
 }

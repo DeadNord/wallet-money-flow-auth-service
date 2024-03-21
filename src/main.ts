@@ -1,6 +1,6 @@
 // Third-party library imports
 import { NestFactory } from '@nestjs/core';
-import cookieParser from 'cookie-parser';
+import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 
@@ -29,7 +29,7 @@ async function bootstrap() {
   setupSwagger(app);
 
   // Configure CORS for handling requests from different origins
-  setupCors(app);
+  // setupCors(app);
 
   // Middleware for parsing cookies
   app.use(cookieParser(COOKIE_SECRET_KEY));

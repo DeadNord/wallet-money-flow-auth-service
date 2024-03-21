@@ -1,39 +1,38 @@
-import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-type userDocument = User & Document;
+// Extend the Mongoose Document to include the User model for stronger typing in TypeScript.
+type UserDocument = User & Document;
 
+// Define the User schema using the @Schema decorator.
+// The schema includes automatic timestamps for 'createdAt' and 'updatedAt'.
 @Schema({ versionKey: false, timestamps: true })
 class User {
-  @Prop({ type: String, required: true })
-  wallet: string;
-
+  // Name property which defaults to null if not provided.
   @Prop({ type: String, default: null })
   name: string;
 
-  @Prop(
-    raw({
-      email: { type: String, default: null },
-      verify: { type: Boolean, default: false },
-      verificationToken: { type: String },
-    }),
-  )
-  emailData: Record<string, any>;
+  // Email property which defaults to null if not provided.
+  @Prop({ type: String, default: null, unique: true })
+  email: string;
 
-  @Prop({
-    type: String,
-    default: 'User',
-    enum: ['User', 'Holder', 'Service', 'Editor', 'Admin'],
-  })
-  role: string;
+  // Mobile property which is required for every user entry.
+  @Prop({ type: String, required: true })
+  mobile: string;
 
+  @Prop({ type: String, required: true })
+  password: string;
+
+  // AccessToken property for authentication, defaults to null if not provided.
   @Prop({ type: String, default: null })
   accessToken: string;
 
+  // RefreshToken property for authentication, defaults to null if not provided.
   @Prop({ type: String, default: null })
   refreshToken: string;
 }
 
-const userSchema = SchemaFactory.createForClass(User);
+// Generate the Mongoose schema for the User class.
+const UserSchema = SchemaFactory.createForClass(User);
 
-export { userSchema, userDocument, User };
+export { UserSchema, UserDocument, User };

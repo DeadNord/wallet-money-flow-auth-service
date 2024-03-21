@@ -1,178 +1,115 @@
+// External libraries
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
+
+// Mongoose models
 import { Model } from 'mongoose';
-import { CreateAuthDto } from './dto/create-auth.dto';
-// import dayjs from 'dayjs';
-// const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
-import jwt from 'jsonwebtoken';
-import { generateToken, verifyToken } from '../helpers/jwtHelper';
-// import * as bcrypt from 'bcrypt';
-import { User, userDocument } from 'src/!schemas/user.schema';
-import { randomUUID } from 'crypto';
-import { v4 } from 'uuid';
+import { User, UserDocument } from './schemas/user.schema';
+
+// DTOs
+import { SignInAuthDto, SignUpAuthDto } from './dto';
+
+// Helpers
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyToken,
+} from 'src/helpers/jwtHelper';
+
+// Constants
+import { AUTH_ERRORS } from 'src/utils/errors';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name)
-    private userModel: Model<userDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>, // Injecting the user model
   ) {}
 
-  async signIn(createAuthDto: CreateAuthDto) {
-    // const { wallet, password } = createAuthDto;
-    const { wallet } = createAuthDto;
-
-    const user = await this.userModel.findOne({ wallet });
-
+  // Sign in a user and return access and refresh tokens
+  async signIn({ email, password }: SignInAuthDto) {
+    const user = await this.userModel.findOne({ email });
     if (!user) {
-      const verificationToken = randomUUID();
-      // const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
-      const user = await this.userModel.create({
-        wallet,
-        // password: hashPassword,
-        'emailData.verificationToken': verificationToken,
-      });
-      const accessToken = await generateToken(user._id, '15m');
-      const refreshToken = await generateToken(v4(), '1h');
-      await this.userModel.findByIdAndUpdate(user._id, {
-        accessToken,
-        refreshToken,
-      });
-      return { accessToken, refreshToken };
+      throw new UnauthorizedException(
+        AUTH_ERRORS.EMAIL_NOT_FOUND.replace('{email}', email),
+      );
     }
 
-    // try {
-    //   bcrypt.compareSync(password, user.password);
-    // } catch (error) {
-    //   throw new UnauthorizedException(`Password wrong`);
-    // }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new UnauthorizedException(AUTH_ERRORS.PASSWORD_WRONG);
+    }
 
-    const checkToken = async (token, _id, type) => {
-      if (token) {
-        try {
-          await verifyToken(token);
-        } catch (error) {
-          if (error.message === 'expired') {
-            if (type === 'access') {
-              const token = await generateToken(_id, '15m');
-              await this.userModel.findByIdAndUpdate(_id, {
-                accessToken: token,
-              });
-              return token;
-            }
+    const accessToken = await generateAccessToken(user._id.toString());
+    const refreshToken = await generateRefreshToken();
 
-            if (type === 'refresh') {
-              const token = await generateToken(v4(), '1h');
-              await this.userModel.findByIdAndUpdate(_id, {
-                refreshToken: token,
-              });
-              return token;
-            }
-          }
-          throw error;
-        }
-        return token;
-      }
-      if (type === 'access') {
-        const token = await generateToken(_id, '15m');
-        await this.userModel.findByIdAndUpdate(_id, {
-          accessToken: token,
-        });
-        return token;
-      }
-
-      if (type === 'refresh') {
-        const token = await generateToken(v4(), '1h');
-        await this.userModel.findByIdAndUpdate(_id, {
-          refreshToken: token,
-        });
-        return token;
-      }
-    };
-
-    const accessToken = await checkToken(user.accessToken, user._id, 'access');
-    const refreshToken = await checkToken(
-      user.refreshToken,
-      user._id,
-      'refresh',
-    );
+    await this.userModel.findByIdAndUpdate(user._id, {
+      accessToken,
+      refreshToken,
+    });
 
     return { accessToken, refreshToken };
   }
 
-  async refreshAccess(token: string) {
-    const refreshToken = token;
-
-    if (!refreshToken) {
-      throw new UnauthorizedException(`Not authorized`);
-    }
-    // console.log(refreshToken);
-
-    try {
-      await verifyToken(refreshToken);
-    } catch (error) {
-      throw new UnauthorizedException();
-    }
-    // await verifyToken(refreshToken);
-
-    const user = await this.userModel.findOne({ refreshToken });
-
-    if (!user) {
-      throw new UnauthorizedException(`Not authorized`);
+  // Register a new user
+  async signUp({ name, email, mobile, password }: SignUpAuthDto) {
+    const existingUser = await this.userModel.findOne({ email });
+    if (existingUser) {
+      throw new UnauthorizedException(
+        AUTH_ERRORS.EMAIL_ALREADY_EXISTS.replace('{email}', email),
+      );
     }
 
-    if (user.accessToken) {
-      const accessToken = user.accessToken;
-
-      try {
-        // console.log(accessToken);
-        await verifyToken(accessToken);
-      } catch (error) {
-        if (error instanceof jwt.TokenExpiredError) {
-          const accessToken = await generateToken(user._id, '15m');
-          await this.userModel.findByIdAndUpdate(user._id, {
-            accessToken,
-          });
-          return { accessToken };
-        }
-      }
-      return { accessToken };
-    }
-
-    const accessToken = await generateToken(user._id, '15m');
-
-    await this.userModel.findByIdAndUpdate(user._id, {
-      accessToken,
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await this.userModel.create({
+      name,
+      email,
+      mobile,
+      password: hashedPassword,
     });
-
-    return { accessToken };
   }
 
-  async signOut(token: string) {
-    const refreshToken = token;
-
-    if (!refreshToken) {
-      throw new UnauthorizedException(`Not authorized`);
-    }
-
-    // const user = await this.userModel.findOne({ refreshToken });
-
-    // if (!user) {
-    //   throw new UnauthorizedException(`Not authorized`);
-    // }
-
+  // Sign out a user by nullifying their tokens
+  async signOut(refreshToken: string) {
     const user = await this.userModel.findOneAndUpdate(
       { refreshToken },
-      {
-        accessToken: null,
-        refreshToken: null,
-      },
+      { accessToken: null, refreshToken: null },
     );
 
     if (!user) {
-      throw new UnauthorizedException(`Not authorized`);
+      throw new UnauthorizedException(AUTH_ERRORS.NOT_AUTHORIZED);
+    }
+  }
+
+  // Refresh a user's access token
+  async refreshAccess(refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException(AUTH_ERRORS.NOT_AUTHORIZED);
     }
 
-    return true;
+    await verifyToken(refreshToken);
+
+    const user = await this.userModel.findOne({ refreshToken });
+    if (!user) {
+      throw new UnauthorizedException(AUTH_ERRORS.NOT_AUTHORIZED);
+    }
+
+    try {
+      await verifyToken(user.accessToken); // Verifies current access token
+      // If this point is reached, current access token is still valid
+      return { accessToken: user.accessToken };
+    } catch (error) {
+      // If token is expired, generate a new one
+      if (error instanceof jwt.TokenExpiredError) {
+        const newAccessToken = await generateAccessToken(user._id.toString());
+        await this.userModel.findByIdAndUpdate(user._id, {
+          accessToken: newAccessToken,
+        });
+        return { accessToken: newAccessToken };
+      } else {
+        throw error; // Rethrow if error is not related to expiration
+      }
+    }
   }
 }
