@@ -37,7 +37,12 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException(AUTH_ERRORS.NO_USER_WITH_TOKEN);
       }
       // Attach user details to the request for use in subsequent handlers
-      request.user = { id: user._id, name: user.name, email: user.email };
+      request.user = {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        mobile: user.mobile,
+      };
       return true; // Authentication successful, proceed with the request
     } catch (error) {
       // Handle token verification failures or other errors

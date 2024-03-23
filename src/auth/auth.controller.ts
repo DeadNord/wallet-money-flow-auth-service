@@ -39,6 +39,7 @@ export class AuthController {
 
   @Post('signIn') // Endpoint for user sign-in
   @ApiOperation({ summary: 'Sign in user' }) // Swagger operation summary
+  @HttpCode(HttpStatus.OK) // Setting the HTTP status code to 200 for successful request
   async signIn(
     @Body() signInAuthDto: SignInAuthDto,
     @Res({ passthrough: true }) response: Response,

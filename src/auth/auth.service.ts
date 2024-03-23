@@ -16,10 +16,10 @@ import {
   generateAccessToken,
   generateRefreshToken,
   verifyToken,
-} from 'src/helpers/jwtHelper';
+} from '../helpers/jwtHelper';
 
 // Constants
-import { AUTH_ERRORS } from 'src/utils/errors';
+import { AUTH_ERRORS } from '../utils/errors';
 
 @Injectable()
 export class AuthService {
@@ -40,7 +40,6 @@ export class AuthService {
     if (!isMatch) {
       throw new UnauthorizedException(AUTH_ERRORS.PASSWORD_WRONG);
     }
-
     const accessToken = await generateAccessToken(user._id.toString());
     const refreshToken = await generateRefreshToken();
 
