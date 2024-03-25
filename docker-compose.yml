@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build:
+      context: .
+    image: auth-service:1.0
+    ports:
+      - '${PORT}:${PORT}'
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      DB_HOST: ${DB_HOST}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      COOKIE_SECRET_KEY: ${COOKIE_SECRET_KEY}
+      ACCESS_TOKEN_EXPIRES_IN: ${ACCESS_TOKEN_EXPIRES_IN}
+      REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN}
+      LOCAL_URL: ${LOCAL_URL}
+      CLIENT_URL: ${CLIENT_URL}
+      THROTTLER_TTL: ${THROTTLER_TTL}
+      THROTTLER_LIMIT: ${THROTTLER_LIMIT}
