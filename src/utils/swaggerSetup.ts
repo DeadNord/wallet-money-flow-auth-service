@@ -29,6 +29,6 @@ export function setupSwagger(app: INestApplication): void {
   const document = SwaggerModule.createDocument(app, options);
 
   // Serve the Swagger UI on the '/docs/swagger' path
-  SwaggerModule.setup('docs/swagger', app, document);
+  SwaggerModule.setup('api/auth/swagger', app, document);
   // }
 }
