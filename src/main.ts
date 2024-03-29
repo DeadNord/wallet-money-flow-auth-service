@@ -41,7 +41,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   // Start listening for incoming requests on the defined port
-  await app.listen(PORT, '0.0.0.0', () => {
+  await app.listen(PORT, '::', () => {
     console.log(`Service running on port ${PORT}`);
   });
 }
