@@ -24,6 +24,6 @@ export function setupCors(app: INestApplication): void {
     // Specifies which methods are allowed when accessing the resource
     methods: 'GET,POST,DELETE,PATCH,OPTIONS',
     allowedHeaders:
-      'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization, user-id, cookie',
   });
 }

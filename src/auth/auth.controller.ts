@@ -96,8 +96,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user access information' }) // Swagger operation summary
   @ApiBearerAuth('access-token') // Signifies this route is protected by bearer token authentication
   @UseGuards(AuthGuard) // Apply custom AuthGuard to protect the route
-  async getAccess(@User() user: ResUserDto) {
+  async getAccess(@User() user: ResUserDto, @Res() res: Response) {
     // Return user's id as access information
-    return { id: user.id };
+    res.setHeader('User-Id', user.id);
+    res.send();
   }
 }
