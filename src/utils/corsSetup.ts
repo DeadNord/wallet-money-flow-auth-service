@@ -22,7 +22,7 @@ export function setupCors(app: INestApplication): void {
     // Allows preflight requests to pass through
     preflightContinue: false,
     // Specifies which methods are allowed when accessing the resource
-    methods: 'GET,POST,DELETE',
+    methods: 'GET,POST,DELETE,PATCH,OPTIONS',
     allowedHeaders:
       'Origin, X-Requested-With, Content-Type, Accept, Authorization',
   });
