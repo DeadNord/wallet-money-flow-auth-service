@@ -82,7 +82,7 @@ describe('AuthController (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`) // Use accessToken for authentication
       .expect(200); // Checks that the user access information was successfully retrieved
 
-    expect(accessResponse.body).toHaveProperty('id');
+    expect(accessResponse.header).toHaveProperty('user-id');
   });
 
   it('/auth/signOut (POST) - User logout', async () => {

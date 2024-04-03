@@ -33,6 +33,8 @@ const createMockResponse = () => {
   const res: Partial<Response> = {};
   res.cookie = jest.fn().mockReturnValue(res);
   res.clearCookie = jest.fn().mockReturnValue(res);
+  res.setHeader = jest.fn();
+  res.send = jest.fn();
   return res as Response;
 };
 
@@ -150,6 +152,7 @@ describe('AuthController', () => {
 
   // Tests for getAccess endpoint
   describe('getAccess', () => {
+    const response = createMockResponse();
     const userData = {
       id: 'userId123',
       name: 'Test User',
@@ -158,8 +161,9 @@ describe('AuthController', () => {
     };
 
     it('should return user ID', async () => {
-      const result = await controller.getAccess(userData);
-      expect(result).toEqual({ id: 'userId123' });
+      await controller.getAccess(userData, response);
+      expect(response.setHeader).toHaveBeenCalledWith('User-Id', 'userId123'); // Check if setHeader method was called with the expected arguments
+      expect(response.send).toHaveBeenCalled(); // Check if send method was called
     });
   });
 });
