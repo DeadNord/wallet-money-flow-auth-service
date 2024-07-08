@@ -79,6 +79,9 @@ export class AuthController {
   async refreshAccess(@Req() request: Request) {
     // Extract refreshToken from signed cookies and perform token refresh logic
     const { refreshToken } = request.signedCookies;
+    console.log(request);
+    console.log(`Request cookies: ${request.signedCookies}`);
+    console.log(`Refresh token: ${refreshToken}`);
     const { accessToken } = await this.authService.refreshAccess(refreshToken);
     return { accessToken };
   }
